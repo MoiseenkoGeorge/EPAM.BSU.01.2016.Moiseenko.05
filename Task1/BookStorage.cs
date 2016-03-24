@@ -11,7 +11,7 @@ namespace Task1
     public class BookStorage
     {
         private readonly Stream fileStream;
-
+        private static Logger logger = LogManager.GetCurrentClassLogger();
         public BookStorage(Stream fileStream)
         {
             try
@@ -24,6 +24,7 @@ namespace Task1
             }
             catch (ArgumentException ex)
             {
+                logger.Fatal("Fatal exception from argument {0} Error: {1}",nameof(fileStream), ex.Message);
                 throw ex;
             }
         }
@@ -39,6 +40,7 @@ namespace Task1
             }
             catch (IOException ex)
             {
+                logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -70,10 +72,12 @@ namespace Task1
             }
             catch (IOException ex)
             {
+                logger.Info(books.Count == 0 ? "has found book by tag" + tag : "not found book by tag" + tag);
                 return books;
             }
             catch (Exception ex)
             {
+                logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -109,10 +113,10 @@ namespace Task1
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                logger.Fatal(ex.Message);
+                throw ex;
             }
             finally
             {
@@ -144,10 +148,10 @@ namespace Task1
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                logger.Fatal(ex.Message);
+                throw ex;
             }
             finally
             {
@@ -173,9 +177,10 @@ namespace Task1
                     binaryWriter.Write(oneByte);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                logger.Fatal(ex.Message);
+                throw ex;
             }
             finally
             {
@@ -203,6 +208,7 @@ namespace Task1
             }
             catch (IOException)
             {
+                logger.Info("find count of books in storage when sort, is {0}",counter);
                 return counter;
             }
             finally
