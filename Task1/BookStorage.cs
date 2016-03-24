@@ -34,10 +34,8 @@ namespace Task1
             try
             {
                 binaryWriter = new BinaryWriter(fileStream, new UTF8Encoding(), true);
-                binaryWriter.Write(book.Name);
-                binaryWriter.Write(book.Author);
-                string tags = book.GetTags().Aggregate("", (current, item) => current + (item + ',')).TrimEnd(new char[] { ',' });
-                binaryWriter.Write(tags);
+                binaryWriter.BaseStream.Position = binaryWriter.BaseStream.Length;
+                WriteOneBook(binaryWriter,book);
             }
             catch (IOException ex)
             {
@@ -59,6 +57,7 @@ namespace Task1
             try
             {
                 binaryReader = new BinaryReader(fileStream, new UTF8Encoding(), true);
+                binaryReader.BaseStream.Position = 0;
                 while (true)
                 {
                     name = binaryReader.ReadString();
@@ -80,7 +79,6 @@ namespace Task1
             finally
             {
                 binaryReader?.Dispose();
-                fileStream.Position = 0;
             }
         }
 
@@ -90,10 +88,11 @@ namespace Task1
             BinaryReader binaryReader = null;
             string name, author, tags;
             string[] tagArray;
-            long delPosition,newLength;
+            long delPosition;
             try
             {
-                binaryReader = new BinaryReader(fileStream);
+                binaryReader = new BinaryReader(fileStream,new UTF8Encoding(),true);
+                binaryReader.BaseStream.Position = 0;
                 while (true)
                 {
                     delPosition = fileStream.Position;
@@ -121,23 +120,133 @@ namespace Task1
             }
         }
 
-        private void RemoveBookFromFile(long startPosition, long endPosition, long newLengthOfFile)
+        public void SortBooksByTag(IComparer<Book> comparator)
+        {
+            Book leftBook, rightBook;
+            BinaryReader binaryReader = null;
+            int booksCount = FindNumberOfBooks();
+            long startPosition;
+            try
+            {
+                binaryReader = new BinaryReader(fileStream, new UTF8Encoding(), true);
+                for (int i = booksCount - 1; i > 0; i--)
+                {
+                    binaryReader.BaseStream.Position = 0;
+                    for (int j = 0; j < i; j++)
+                    {
+                        startPosition = binaryReader.BaseStream.Position;
+                        leftBook = ReadOneBook(binaryReader);
+                        var temp = binaryReader.BaseStream.Position;
+                        rightBook = ReadOneBook(binaryReader);
+                        if(comparator.Compare(leftBook,rightBook) > 0)
+                            Swap(leftBook,rightBook,startPosition);
+                        binaryReader.BaseStream.Position = temp;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally
+            {
+                binaryReader?.Dispose();
+            }
+        }
+
+        private void RemoveBookFromFile(long writerPosition, long readerPosition, long newLengthOfFile)
         {
             BinaryReader binaryReader = null;
             BinaryWriter binaryWriter = null;
             try
             {
-                binaryWriter = new BinaryWriter(fileStream);
-                binaryWriter.Seek((int)startPosition,SeekOrigin.Begin);
-                binaryReader = new BinaryReader(fileStream);
-                binaryReader.
+                binaryWriter = new BinaryWriter(fileStream, new UTF8Encoding(), true);
+                binaryReader = new BinaryReader(fileStream, new UTF8Encoding(), true);
+                while (true)
+                {
+                    if (readerPosition == fileStream.Length)
+                        break;
+                    binaryReader.BaseStream.Seek(readerPosition++, SeekOrigin.Begin);
+                    byte oneByte = binaryReader.ReadByte();
+                    binaryWriter.BaseStream.Seek(writerPosition++, SeekOrigin.Begin);
+                    binaryWriter.Write(oneByte);
+                }
             }
             catch (Exception)
             {
-                
                 throw;
             }
+            finally
+            {
+                binaryWriter?.Dispose();
+                binaryReader?.Dispose();
+            }
             fileStream.SetLength(newLengthOfFile);
+        }
+
+        private int FindNumberOfBooks()
+        {
+            BinaryReader binaryReader = null;
+            string name, author, tags;
+            int counter = 0;
+            try
+            {
+                binaryReader = new BinaryReader(fileStream, new UTF8Encoding(), true);
+                while (true)
+                {
+                    name = binaryReader.ReadString();
+                    author = binaryReader.ReadString();
+                    tags = binaryReader.ReadString();
+                    counter++;
+                }
+            }
+            catch (IOException)
+            {
+                return counter;
+            }
+            finally
+            {
+                binaryReader?.Dispose();
+            }
+        }
+
+        private Book ReadOneBook(BinaryReader binaryReader)
+        {
+            var name = binaryReader.ReadString();
+            var author = binaryReader.ReadString();
+            var tags = binaryReader.ReadString();
+            var tagArray = tags.Split(',');
+            return new Book(name,author,tagArray);
+        }
+
+        private void Swap(Book lhs, Book rhs,long position)
+        {
+            BinaryWriter binaryWriter = null;
+            try
+            {
+                binaryWriter = new BinaryWriter(fileStream);
+                binaryWriter.BaseStream.Position = position;
+                WriteOneBook(binaryWriter,rhs);
+                WriteOneBook(binaryWriter,lhs);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally
+            {
+                binaryWriter?.Dispose();
+            }
+        }
+
+        private void WriteOneBook(BinaryWriter binaryWriter,Book book)
+        {
+            binaryWriter.Write(book.Name);
+            binaryWriter.Write(book.Author);
+            string tags = book.GetTags().Aggregate("", (current, item) => current + (item + ',')).TrimEnd(new char[] { ',' });
+            binaryWriter.Write(tags);
         }
     }
 }

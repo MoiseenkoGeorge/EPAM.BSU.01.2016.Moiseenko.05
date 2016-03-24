@@ -42,9 +42,14 @@ namespace Task1
             return true;
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public static bool operator ==(Book lhs, Book rhs)
         {
-            if (System.Object.ReferenceEquals(lhs, rhs))
+            if (ReferenceEquals(lhs, rhs))
             {
                 return true;
             }

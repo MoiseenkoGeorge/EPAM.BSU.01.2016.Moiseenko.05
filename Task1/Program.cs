@@ -10,11 +10,14 @@ namespace Task1
     {
         static void Main()
         {
-            Book book = new Book("iam", "me", "tag", "chlen");
-            FileStream fileStream = new FileStream("1.txt",FileMode.Truncate);
+            Book book1 = new Book("iam", "me", "book", "myBook");
+            Book book2 = new Book("iam", "me", "book", "myBook","lol");
+            FileStream fileStream = new FileStream("1.txt",FileMode.Create);
             BookStorage bookStorage = new BookStorage(fileStream);
-            bookStorage.AddBook(book);
+            bookStorage.AddBook(book1);
+            bookStorage.AddBook(book2);
             bookStorage.FindByTag("tg");
+            bookStorage.RemoveBook(book1);
         }
     }
 }
