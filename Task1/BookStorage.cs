@@ -8,11 +8,18 @@ using System.Threading.Tasks;
 using NLog;
 namespace Task1
 {
-    public class BookStorage
+    public interface IRepository<T> where T : class
+    {
+        void Add(T entity);
+        void Delete(T entity);
+        List<T> FindByTag(string tag);
+        void SortByTag(Comparison<T> comparison);
+    }
+    public class BookFileStorage : IRepository<Book>
     {
         private readonly Stream fileStream;
-        private static Logger logger = LogManager.GetCurrentClassLogger();
-        public BookStorage(Stream fileStream)
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        public BookFileStorage(Stream fileStream)
         {
             try
             {
@@ -24,12 +31,12 @@ namespace Task1
             }
             catch (ArgumentException ex)
             {
-                logger.Fatal("Fatal exception from argument {0} Error: {1}",nameof(fileStream), ex.Message);
+                Logger.Fatal("Fatal exception from argument {0} Error: {1}",nameof(fileStream), ex.Message);
                 throw ex;
             }
         }
 
-        public void AddBook(Book book)
+        public void Add(Book book)
         {
             BinaryWriter binaryWriter = null;
             try
@@ -40,7 +47,7 @@ namespace Task1
             }
             catch (IOException ex)
             {
-                logger.Fatal(ex.Message);
+                Logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -72,12 +79,12 @@ namespace Task1
             }
             catch (IOException ex)
             {
-                logger.Info(books.Count == 0 ? "has found book by tag" + tag : "not found book by tag" + tag);
+                Logger.Info(books.Count == 0 ? "has found book by tag" + tag : "not found book by tag" + tag);
                 return books;
             }
             catch (Exception ex)
             {
-                logger.Fatal(ex.Message);
+                Logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -86,7 +93,7 @@ namespace Task1
             }
         }
 
-        public void RemoveBook(Book book)
+        public void Delete(Book book)
         {
             Book foundBook;
             BinaryReader binaryReader = null;
@@ -115,7 +122,7 @@ namespace Task1
             }
             catch (Exception ex)
             {
-                logger.Fatal(ex.Message);
+                Logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -124,7 +131,7 @@ namespace Task1
             }
         }
 
-        public void SortBooksByTag(IComparer<Book> comparator)
+        public void SortByTag(Comparison<Book> comparison)
         {
             Book leftBook, rightBook;
             BinaryReader binaryReader = null;
@@ -142,7 +149,7 @@ namespace Task1
                         leftBook = ReadOneBook(binaryReader);
                         var temp = binaryReader.BaseStream.Position;
                         rightBook = ReadOneBook(binaryReader);
-                        if(comparator.Compare(leftBook,rightBook) > 0)
+                        if(comparison(leftBook,rightBook) > 0)
                             Swap(leftBook,rightBook,startPosition);
                         binaryReader.BaseStream.Position = temp;
                     }
@@ -150,7 +157,7 @@ namespace Task1
             }
             catch (Exception ex)
             {
-                logger.Fatal(ex.Message);
+                Logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -179,7 +186,7 @@ namespace Task1
             }
             catch (Exception ex)
             {
-                logger.Fatal(ex.Message);
+                Logger.Fatal(ex.Message);
                 throw ex;
             }
             finally
@@ -208,7 +215,7 @@ namespace Task1
             }
             catch (IOException)
             {
-                logger.Info("find count of books in storage when sort, is {0}",counter);
+                Logger.Info("find count of books in storage when sort, is {0}",counter);
                 return counter;
             }
             finally
