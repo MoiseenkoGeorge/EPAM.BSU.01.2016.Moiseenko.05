@@ -7,6 +7,7 @@ using System.IO;
 
 namespace Task1
 {
+    [Serializable]
     public class Book
     {
         public string Name { get; private set; }

@@ -18,6 +18,8 @@ namespace Task1
             //bxStorage.Add(book2);
             //bxStorage.Save();
             bxStorage.Load();
+            bxStorage.SerializeSave("serialize.dat");
+            bxStorage.SerializeLoad("serialize.dat");
             //BookFileStorage bookStorage = new BookFileStorage(fileStream);
             //bookStorage.Add(book1);
             //bookStorage.Add(book2);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml;
 using System.Xml.Linq;
 using NLog;
@@ -14,7 +15,6 @@ namespace Task1
         private List<Book> listBook = new List<Book>();
         private readonly Stream fileStream;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly  XDocument xDocument = new XDocument();
 
         public BookXmlStorage(Stream fileStream)
         {
@@ -123,6 +123,14 @@ namespace Task1
             }
         }
 
+        public void SerializeLoad(string fileName)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            using (var filestream = new FileStream(fileName, FileMode.Open))
+            {
+                listBook = (List<Book>) formatter.Deserialize(filestream);
+            }
+        }
         public void Save()
         {
             fileStream.SetLength(0);
@@ -147,6 +155,14 @@ namespace Task1
             }
         }
 
+        public void SerializeSave(string fileName)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            using (var filestream = new FileStream(fileName,FileMode.Create))
+            {
+                formatter.Serialize(filestream,listBook);
+            }
+        }
         private void Swap(Book lhs,Book rhs)
         {
             Book temp = lhs;
