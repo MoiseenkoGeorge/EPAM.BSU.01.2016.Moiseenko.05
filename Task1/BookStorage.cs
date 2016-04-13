@@ -8,14 +8,8 @@ using System.Threading.Tasks;
 using NLog;
 namespace Task1
 {
-    public interface IRepository<T> where T : class
-    {
-        void Add(T entity);
-        void Delete(T entity);
-        List<T> FindByTag(string tag);
-        void SortByTag(Comparison<T> comparison);
-    }
-    public class BookFileStorage : IRepository<Book>
+    
+    public class BookFileStorage 
     {
         private readonly Stream fileStream;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();

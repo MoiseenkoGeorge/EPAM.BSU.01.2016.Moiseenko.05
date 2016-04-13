@@ -29,20 +29,17 @@ namespace Task1
 
         public override bool Equals(object obj)
         {
-            if (obj == null) return false;
             Book book = obj as Book;
             if (book == null) return false;
             if (this.Name == book.Name && this.Author == book.Author && this.tags.Count == book.GetTags().Count)
             {
                 List<string> tagsList = book.GetTags();
-                for(int i=0; i < tags.Count ; i++)
-                    if (tags[i] != tagsList[i])
-                        return false;
+                return !tags.Where((t, i) => t != tagsList[i]).Any();
             }
-            return true;
+            return false;
         }
 
-        public override int GetHashCode()
+        public int GetHashCode(Book obj)
         {
             return base.GetHashCode();
         }
